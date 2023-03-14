@@ -5,8 +5,6 @@ Todo:
 - Add file saving
 - Add away time calculation
 - Add support for multiple Critters
-
-from datetime import datetime
 '''
 
 class Critter(tk.Tk):
