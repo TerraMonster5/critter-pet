@@ -87,5 +87,5 @@ class Critter(tk.Tk):
 
 # Main program
 if __name__ == "__main__":
-    a = Critter("Bob")
-    a.mainloop()
+    bob = Critter("Bob")
+    bob.mainloop()
