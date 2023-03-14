@@ -1,4 +1,5 @@
 import tkinter as tk
+
 '''
 Todo:
 - Add file saving
@@ -34,10 +35,17 @@ class Critter(tk.Tk):
         self._statusLb = tk.Label(self, text="Status Unknown", font=("Ariel", 15))
         self._statusLb.pack(pady=(100, 0))
 
+        # Setup unhappiness label
         self._unhappinessLb = tk.Label(self, text="", font=("Ariel", 10))
         self._unhappinessLb.pack()
 
+        # Setup care buttons
+        tk.Button(self, text="Play", font=("Ariel", 10), command=self.play).pack(side="bottom", pady=(5, 20))
+        tk.Button(self, text="Feed", font=("Ariel", 10), command=self.eat).pack(side="bottom", pady=(0, 5))
+
+        # Schedule update and render events
         self.after(2000, self._update)
+        self.after(1, self._render)
 
         # Increment number of instatiated Critters once fully initialised
         Critter.__total += 1
@@ -47,10 +55,14 @@ class Critter(tk.Tk):
         self._hunger += 1
         self._boredom += 1
 
+        self.after(2000, self._update)
+    
+    # Render stats every millisecond
+    def _render(self) -> None:
         self._statusLb.configure(text=f"Hunger: {self._hunger} | Boredom: {self._boredom}")
         self._unhappinessLb.configure(text=f"Happiness: {self.mood}")
 
-        self.after(2000, self._update)
+        self.after(1, self._render)
 
     @property
     def mood(self) -> str:
@@ -65,6 +77,7 @@ class Critter(tk.Tk):
             m = "mad"
         return m
     
+    # Helper functions to decrement hunger and boredom
     def eat(self) -> None:
         self._hunger -= 8
         if self._hunger < 0: self._hunger = 0
@@ -73,6 +86,7 @@ class Critter(tk.Tk):
         self._boredom -= 8
         if self._boredom < 0: self._boredom = 0
 
+# Main program
 if __name__ == "__main__":
     a = Critter("Bob")
     a.mainloop()
