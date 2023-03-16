@@ -4,7 +4,9 @@ import tkinter as tk
 Todo:
 - Add file saving
 - Add away time calculation
-- Add support for multiple Critters
+- Button cooldowns
+- Overfeeding
+- Overstimulating
 '''
 
 class Critter(tk.Tk):
@@ -18,6 +20,8 @@ class Critter(tk.Tk):
     # Initialise each object once instantiated
     def __init__(self, name: str) -> None:
         super().__init__()
+
+        self.alive = True
 
         self._name = name
 
@@ -39,8 +43,11 @@ class Critter(tk.Tk):
         self._unhappinessLb.pack()
 
         # Setup care buttons
-        tk.Button(self, text="Play", font=("Ariel", 10), command=self.play).pack(side="bottom", pady=(5, 20))
-        tk.Button(self, text="Feed", font=("Ariel", 10), command=self.eat).pack(side="bottom", pady=(0, 5))
+        self.playBt = tk.Button(self, text="Play", font=("Ariel", 10), command=self.play)
+        self.eatBt = tk.Button(self, text="Feed", font=("Ariel", 10), command=self.eat)
+
+        self.playBt.pack(side="bottom", pady=(5, 20))
+        self.eatBt.pack(side="bottom", pady=(0, 5))
 
         # Schedule update and render events
         self.after(2000, self._update)
@@ -49,10 +56,10 @@ class Critter(tk.Tk):
         # Increment number of instatiated Critters once fully initialised
         Critter.__total += 1
 
-    # Increment stats every 10 seconds
+    # Increment stats every 2 seconds
     def _update(self) -> None:
-        self._hunger += 1
-        self._boredom += 1
+        self._hunger += 5
+        self._boredom += 5
 
         self.after(2000, self._update)
     
@@ -72,20 +79,77 @@ class Critter(tk.Tk):
             m = "okay"
         elif 20 < unhappiness <= 30:
             m = "frustrated"
-        else:
+        elif 30 < unhappiness <= 100:
             m = "mad"
+        else:
+            m = "dead"
+            self.alive = False
         return m
     
     # Helper functions to decrement hunger and boredom
-    def eat(self) -> None:
-        self._hunger -= 8
-        if self._hunger < 0: self._hunger = 0
-    
     def play(self) -> None:
-        self._boredom -= 8
+        self._boredom -= 10
         if self._boredom < 0: self._boredom = 0
+        
+    def eat(self) -> None:
+        self._hunger -= 10
+        if self._hunger < 0: self._hunger = 0
+
+class Main(tk.Tk):
+    class State:
+        def __init__(self, window) -> None:
+            self._window = window
+            self._frame = tk.Frame(window)
+            self._frame.pack()
+        
+        def _switchMainMenu(self) -> None:
+            self._frame.destroy()
+            self._window.currentState = self._window.MainMenu(self._window)
+
+    
+    class MainMenu(State):
+        def __init__(self, window) -> None:
+            super().__init__(window)
+
+            tk.Button(self._frame, text="View Critters", command=self.__switchViewCritters).pack()
+        
+        def __switchViewCritters(self) -> None:
+            self._frame.destroy()
+            self._window.currentState = self._window.ViewCritters(self._window)
+    
+    class ViewCritters(State):
+        def __init__(self, window) -> None:
+            super().__init__(window)
+
+            tk.Button(self._frame, text="Back", command=self._switchMainMenu).pack()
+            tk.Button(self._frame, text="New Critter", command=self.newCritter).pack()
+        
+        def newCritter(self) -> None:
+            self._window.critters.append(Critter("Bob"))
+            self._window.critters[-1].mainloop()
+
+    def __init__(self) -> None:
+        super().__init__()
+
+        self.currentState = self.MainMenu(self)
+        self.critters = []
+
+        # Setup window
+        self.title("blah")
+        self.resizable(False, False)
+        self.geometry("300x300")
+
+        self.after(1, self.__death)
+    
+    def __death(self) -> None:
+        for count, critter in enumerate(self.critters):
+            if not critter.alive:
+                critter.destroy()
+                self.critters.pop(count)
+        
+        self.after(1, self.__death)
 
 # Main program
 if __name__ == "__main__":
-    bob = Critter("Bob")
-    bob.mainloop()
+    app = Main()
+    app.mainloop()
