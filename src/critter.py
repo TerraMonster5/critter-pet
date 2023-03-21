@@ -1,10 +1,10 @@
 import tkinter as tk
+import datetime as dt
 
 '''
 Todo:
 - Add file saving
 - Add away time calculation
-- Button cooldowns
 - Overfeeding
 - Overstimulating
 '''
@@ -50,11 +50,14 @@ class Critter(tk.Tk):
         self.eatBt.pack(side="bottom", pady=(0, 5))
 
         # Schedule update and render events
-        self.after(2000, self._update)
+        self.after(5000, self._update)
         self.after(1, self._render)
 
         # Increment number of instatiated Critters once fully initialised
         Critter.__total += 1
+
+        # Run event loop
+        self.mainloop()
 
     # Increment stats every 2 seconds
     def _update(self) -> None:
@@ -69,6 +72,15 @@ class Critter(tk.Tk):
         self._unhappinessLb.configure(text=f"Happiness: {self.mood}")
 
         self.after(1, self._render)
+
+    def getName(self) -> str:
+        return self._name
+    
+    def getBoredom(self) -> int:
+        return self._boredom
+    
+    def getHunger(self) -> int:
+        return self._hunger
 
     @property
     def mood(self) -> str:
@@ -88,12 +100,16 @@ class Critter(tk.Tk):
     
     # Helper functions to decrement hunger and boredom
     def play(self) -> None:
+        self.playBt.configure(state="disabled")
         self._boredom -= 10
         if self._boredom < 0: self._boredom = 0
+        self.playBt.after(10000, lambda: self.playBt.configure(state="active"))
         
     def eat(self) -> None:
+        self.eatBt.configure(state="disabled")
         self._hunger -= 10
         if self._hunger < 0: self._hunger = 0
+        self.eatBt.after(10000, lambda: self.eatBt.configure(state="active"))
 
 class Main(tk.Tk):
     class State:
@@ -126,7 +142,6 @@ class Main(tk.Tk):
         
         def newCritter(self) -> None:
             self._window.critters.append(Critter("Bob"))
-            self._window.critters[-1].mainloop()
 
     def __init__(self) -> None:
         super().__init__()
@@ -153,3 +168,10 @@ class Main(tk.Tk):
 if __name__ == "__main__":
     app = Main()
     app.mainloop()
+
+    with open("critters.txt", "w") as file:
+        for count, critter in enumerate(app.critters):
+            formattedTime = dt.datetime.now().strftime("%d %m %Y %H:%M:%S")
+            file.write(f"{critter.getName()}, {critter.getBoredom()}, {critter.getHunger()}, {formattedTime}")
+            critter.destroy()
+            app.critters.pop(count)
