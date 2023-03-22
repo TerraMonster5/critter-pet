@@ -168,10 +168,3 @@ class Main(tk.Tk):
 if __name__ == "__main__":
     app = Main()
     app.mainloop()
-
-    with open("critters.txt", "w") as file:
-        for count, critter in enumerate(app.critters):
-            formattedTime = dt.datetime.now().strftime("%d %m %Y %H:%M:%S")
-            file.write(f"{critter.getName()}, {critter.getBoredom()}, {critter.getHunger()}, {formattedTime}")
-            critter.destroy()
-            app.critters.pop(count)
